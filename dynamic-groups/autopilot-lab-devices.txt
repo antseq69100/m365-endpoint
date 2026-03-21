@@ -1,0 +1,5 @@
+# Dynamic group rule
+# Description: Lab Autopilot virtual machines
+# Used for: testing policies before production deployment
+
+(device.displayName -startsWith "AP-LAB")
