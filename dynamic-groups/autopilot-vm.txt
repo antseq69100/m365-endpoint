@@ -1,0 +1,5 @@
+# Dynamic group rule
+# Description: Windows Autopilot virtual machines (lab environment)
+# Naming convention: AP-LAB-VM-%SERIAL%
+
+(device.displayName -startsWith "AP-LAB-VM")
