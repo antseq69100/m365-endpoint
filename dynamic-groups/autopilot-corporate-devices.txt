@@ -1,0 +1,7 @@
+# Dynamic group rule
+# Description: Corporate Windows Autopilot devices
+# Used for: production deployment targeting
+
+(device.devicePhysicalIDs -any (_ -contains "[ZTDId]")) 
+-and 
+(device.deviceOwnership -eq "Company")
