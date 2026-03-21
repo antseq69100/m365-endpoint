@@ -1,0 +1,5 @@
+# Dynamic group rule
+# Description: All corporate-owned devices
+# Used for: corporate policies and application deployment
+
+(device.deviceOwnership -eq "Company")
