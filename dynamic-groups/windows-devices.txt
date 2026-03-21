@@ -1,0 +1,5 @@
+# Dynamic group rule
+# Description: All Windows devices
+# Used for: security policies, scripts, compliance baseline
+
+(device.deviceOSType -contains "Windows")
