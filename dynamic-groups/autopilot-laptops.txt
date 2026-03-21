@@ -1,0 +1,5 @@
+# Dynamic group rule
+# Description: Windows Autopilot laptops
+# Naming convention: AP-LAP-%SERIAL%
+
+(device.displayName -startsWith "AP-LAP")
