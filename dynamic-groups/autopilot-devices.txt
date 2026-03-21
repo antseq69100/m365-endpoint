@@ -1,4 +1,5 @@
 # Dynamic group rule
 # Description: All Windows Autopilot registered devices
 # Used for: Autopilot profile assignment
+
 (device.devicePhysicalIDs -any (_ -contains "[ZTDId]"))
