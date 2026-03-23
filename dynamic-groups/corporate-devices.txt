@@ -2,4 +2,4 @@
 # Description: All corporate-owned devices
 # Used for: corporate policies and application deployment
 
-(device.deviceOwnership -eq "Company")
+(device.deviceOSType -eq "Windows") and (device.managementType -eq "MDM")
