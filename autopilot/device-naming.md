@@ -4,10 +4,10 @@ Virtual machines:
 AP-LAB-VM-%SERIAL%
 
 Laptops:
-AP-LAP-%SERIAL%
+AP-LT-%SERIAL%
 
 Desktop: 
-AP-DSK-%SERIAL%
+AP-DT-%SERIAL%
 
 Purpose:
 Separate test environment from physical devices
