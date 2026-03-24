@@ -1,1 +1,5 @@
+# Dynamic group rule
+# Description: All Windows desktops
+# Used for: laptop-specific policies (BitLocker, Wi-Fi, VPN)
 
+(device.deviceModel -contains "DT")
