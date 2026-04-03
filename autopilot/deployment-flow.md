@@ -12,8 +12,8 @@ Standard user rights
 
 4. Device renamed using naming convention:
 AP-LAB-VM-%SERIAL%
-AP-LAP-%SERIAL%
-AP-DSK-%SERIAL%
+AP-LT-%SERIAL%
+AP-DT-%SERIAL%
 
 5. Enrollment Status Page (ESP) starts:
 Required security configuration applied
