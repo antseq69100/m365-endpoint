@@ -26,6 +26,9 @@
 # - Droits lecture Active Directory
 ############################################################
 
+# Get-Module -ListAvailable ActiveDirectory : avoir la liste des modules > sinon Import-Module ActiveDirectory si absent
+# Get-ExecutionPolicy : Verifier que les scripts sont executables
+# Tester le script sur un petit groupe de TEST pour la premiere fois sans export
 
 ############################################################
 # Chargement du module Active Directory
