@@ -1,72 +1,132 @@
-﻿# ==========================================================
-# Script Name : PS - Set Dark Mode Default
-# Purpose     : Configure le mode sombre (Dark Mode)
-#               pour Windows et les applications utilisateur.
+# =====================================================================
+# Script Name  : Set-WindowsUserDarkMode.ps1
+# Author       : Anthony Sequeira
+# Version      : 1.0
+# Date         : 2026-04-03
 #
-# Platform    : Windows
-# Execution   : Intune Platform Script
+# Execution    : Microsoft Intune Platform Script
+# Context      : USER (HKCU required)
 #
-# Author      : Anthony Sequeira
-# ==========================================================
+# Description  :
+# Configure le mode sombre Windows pour :
+# - l’interface système
+# - les applications compatibles
+#
+# Le script applique les paramètres dans le registre utilisateur
+# actif (HKCU) puis redémarre Windows Explorer pour prise en compte
+# immédiate sans nécessiter logout/login.
+#
+# Compatible :
+# - Intune Platform Script (User context)
+# - Remediation script (user phase)
+# - Autopilot post-enrollment
+#
+# Registry Keys modified :
+# HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize
+#
+# Values :
+# SystemUsesLightTheme = 0
+# AppsUseLightTheme    = 0
+#
+# Behaviour :
+# Script idempotent → peut être relancé sans effet secondaire
+#
+# Exit Codes :
+# 0 = Success
+# 1 = Error
+# =====================================================================
 
 
-# ----------------------------------------------------------
-# Chemin du registre contenant les paramètres du thème
-# HKCU = configuration spécifique à l'utilisateur connecté
-# ----------------------------------------------------------
-$path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+
+# =====================================================================
+# VARIABLES
+# =====================================================================
+
+# Registry path contenant la configuration du thème utilisateur
+$registryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 
 
-# ----------------------------------------------------------
-# Vérifie si la clé registre existe
-# Si elle n'existe pas, elle est créée automatiquement
-# ----------------------------------------------------------
-If (!(Test-Path $path)) {
 
-    Write-Output "Registry path not found. Creating key..."
+# =====================================================================
+# ENSURE REGISTRY PATH EXISTS
+# Création si absent (cas profils nouveaux utilisateurs / Autopilot)
+# =====================================================================
 
-    New-Item -Path $path -Force | Out-Null
+if (!(Test-Path $registryPath)) {
+
+    Write-Output "Registry path not found. Creating personalize key..."
+
+    New-Item `
+        -Path $registryPath `
+        -Force | Out-Null
 }
 
 
-# ----------------------------------------------------------
-# Active le mode sombre pour l'interface Windows
+
+# =====================================================================
+# APPLY DARK MODE FOR WINDOWS UI
 #
-# Valeurs possibles :
+# Value meanings :
 # 1 = Light Mode
 # 0 = Dark Mode
-# ----------------------------------------------------------
-Write-Output "Applying dark mode for Windows UI..."
+# =====================================================================
 
-Set-ItemProperty -Path $path -Name "SystemUsesLightTheme" -Value 0 -Type DWord
+Write-Output "Applying Dark Mode to Windows system UI..."
+
+Set-ItemProperty `
+    -Path $registryPath `
+    -Name "SystemUsesLightTheme" `
+    -Value 0 `
+    -Type DWord
 
 
-# ----------------------------------------------------------
-# Active le mode sombre pour les applications
+
+# =====================================================================
+# APPLY DARK MODE FOR APPLICATIONS
 #
-# Valeurs possibles :
+# Value meanings :
 # 1 = Light Mode
 # 0 = Dark Mode
-# ----------------------------------------------------------
-Write-Output "Applying dark mode for applications..."
+# =====================================================================
 
-Set-ItemProperty -Path $path -Name "AppsUseLightTheme" -Value 0 -Type DWord
+Write-Output "Applying Dark Mode to applications..."
 
-
-# ----------------------------------------------------------
-# Redémarre Explorer pour appliquer immédiatement le thème
-# Sans cette étape, le changement peut nécessiter une
-# déconnexion / reconnexion utilisateur.
-# ----------------------------------------------------------
-Write-Output "Restarting Windows Explorer to apply theme..."
-
-Stop-Process -Name explorer -Force
+Set-ItemProperty `
+    -Path $registryPath `
+    -Name "AppsUseLightTheme" `
+    -Value 0 `
+    -Type DWord
 
 
-# ----------------------------------------------------------
-# Fin du script
-# exit 0 indique que l'exécution s'est terminée correctement
-# ----------------------------------------------------------
-Write-Output "Dark mode configuration applied successfully."
+
+# =====================================================================
+# RESTART EXPLORER PROCESS
+#
+# Permet application immédiate du thème
+# Sans restart explorer :
+# changement visible uniquement après reconnexion utilisateur
+#
+# Safe behavior :
+# restart uniquement si explorer.exe actif
+# =====================================================================
+
+Write-Output "Restarting Explorer process to apply theme immediately..."
+
+$explorerProcess = Get-Process explorer -ErrorAction SilentlyContinue
+
+if ($explorerProcess) {
+
+    Stop-Process `
+        -Name explorer `
+        -Force
+}
+
+
+
+# =====================================================================
+# SCRIPT COMPLETION
+# =====================================================================
+
+Write-Output "Dark Mode configuration applied successfully."
 
 exit 0
