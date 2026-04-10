@@ -46,6 +46,7 @@ Use ONE of these:
 Option A (recommended)
 Registry detection:
 HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\<AppKey>
+Exemple for me : HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{521c89be-637f-4274-a840-baaf7460c2b2}
 
 Option B
 DisplayName equals:
