@@ -1,7 +1,7 @@
 # =====================================================================
 # Universal Win32 Install Script (EXE/MSI) - Intune / SYSTEM friendly
 # Author  : Anthony Sequeira
-# Version : 1.0.3
+# Version : 1.0.4
 # Purpose : Install EXE or MSI applications through Microsoft Intune
 # Log file: C:\Temp\Install-App.log
 # =====================================================================
@@ -12,59 +12,63 @@
 # =====================================================================
 
 <#
-STEP 1 — Folder structure before packaging
+STEP 1 - Folder structure before packaging
 
 Example:
 
 AppFolder
-│
-├── Install-App.ps1
-└── Setup.exe   (or Setup.msi)
+|
+|-- install-App-LGHUB-v1.0.4.ps1
+|-- lghub_installer.exe
 
 
-STEP 2 — Create IntuneWin package
+STEP 2 - Create IntuneWin package
 
 Run:
 
-IntuneWinAppUtil.exe -c AppFolder -s Install-App.ps1 -o OutputFolder
+IntuneWinAppUtil.exe -c AppFolder -s install-App-LGHUB-v1.0.4.ps1 -o OutputFolder
 
 
-STEP 3 — Install command (Intune)
+STEP 3 - Install command (Intune)
 
-powershell.exe -ExecutionPolicy Bypass -File .\Install-App.ps1
-
-
-STEP 4 — Uninstall command (example)
-
-powershell.exe -ExecutionPolicy Bypass -File .\Uninstall-App.ps1
+powershell.exe -ExecutionPolicy Bypass -File .\install-App-LGHUB-v1.0.4.ps1
 
 
-STEP 5 — Detection rule recommendation
+STEP 4 - Uninstall command (example)
 
-Use ONE of these:
-
-Option A (recommended)
-Registry detection:
-HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\<AppKey>
----------------------------------------------------------------------------------------
-Exemple for me : HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{521c89be-637f-4274-a840-baaf7460c2b2}
-Value name : DisplayVersion
-Detection method : Version comparison
-Operator :Greater than or equal to
-Value : 2026.1.828335
+powershell.exe -ExecutionPolicy Bypass -File .\Uninstall-App-LGHUB.ps1
 
 
-Option B
-DisplayName equals:
-Example:
-Focusrite Control
+STEP 5 - Detection rule recommendation
 
-Option C
-File detection:
-C:\Program Files\AppFolder\App.exe
+Option A - Registry detection (recommended for Logitech G HUB)
+
+Key:
+HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{521c89be-637f-4274-a840-baaf7460c2b2}
+
+Value name:
+DisplayVersion
+
+Detection method:
+Version comparison
+
+Operator:
+Greater than or equal to
+
+Value:
+2026.1.828335
 
 
-STEP 6 — Common EXE silent install switches
+Option B - File detection
+
+Path:
+C:\Program Files\LGHUB
+
+File:
+lghub.exe
+
+
+STEP 6 - Common EXE silent install switches
 
 NSIS installers:
     /S
@@ -82,12 +86,12 @@ Microsoft installers:
     /quiet /norestart
 
 
-STEP 7 — Where logs are stored
+STEP 7 - Where logs are stored
 
 C:\Temp\Install-App.log
 
 
-STEP 8 — Version tracking
+STEP 8 - Version tracking
 
 Always increment:
 
@@ -99,6 +103,7 @@ Example:
 1.0.1 = logging improved
 1.0.2 = Logitech G HUB hardening
 1.0.3 = logging folder creation hardened
+1.0.4 = install duration and validation improvements
 #>
 
 
@@ -106,8 +111,9 @@ Example:
 # SCRIPT METADATA VARIABLES
 # =====================================================================
 
-$ScriptVersion = "1.0.3"
+$ScriptVersion = "1.0.4"
 $ScriptAuthor  = "Anthony Sequeira"
+$ScriptStartTime = Get-Date
 
 
 # =====================================================================
@@ -145,18 +151,16 @@ $installerFile = "lghub_installer.exe"
 $installerType = "EXE"
 
 # Silent install arguments
-# Example values:
-# /S
-# /quiet
-# /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 $installArgs = "--silent"
 
 # Optional DisplayName detection pattern
-# Used only to skip install if already present
 $expectedDisplayName = "*Logitech G HUB*"
 
-# Logitech G HUB post-install validation path
+# Post-install validation path
 $expectedFilePath = "C:\Program Files\LGHUB\lghub.exe"
+
+# Retry validation delay in seconds
+$postInstallWaitSeconds = 10
 
 # Logitech G HUB related processes to stop before install
 $processNamesToStop = @(
@@ -207,7 +211,6 @@ function Convert-ToAsciiSafe
     }
 
     $norm = $Text.Normalize([Text.NormalizationForm]::FormD)
-
     $sb = New-Object System.Text.StringBuilder
 
     foreach ($ch in $norm.ToCharArray())
@@ -240,9 +243,7 @@ function Write-Log
     try
     {
         $time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-
         $safe = Convert-ToAsciiSafe $Message
-
         $line = "$time - $safe"
 
         $line | Out-File -FilePath $logFile -Append -Encoding ASCII -ErrorAction Stop
@@ -360,7 +361,6 @@ Write-Log ("PowerShell version: " + $PSVersionTable.PSVersion.ToString())
 Write-Log ("64-bit process: " + [Environment]::Is64BitProcess)
 Write-Log ("64-bit OS: " + [Environment]::Is64BitOperatingSystem)
 
-
 try
 {
     $wid = [System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -380,16 +380,13 @@ catch
 # =====================================================================
 
 $scriptRoot = Split-Path -Parent $PSCommandPath
-
 $installerPath = Join-Path $scriptRoot $installerFile
 
 Write-Log ("Resolved installer path: " + $installerPath)
 
-
 if (!(Test-Path $installerPath))
 {
     Write-Log ("Installer not found: " + $installerPath)
-
     exit 1
 }
 
@@ -401,13 +398,12 @@ if (!(Test-Path $installerPath))
 if ($expectedFilePath -and (Test-AppInstalledByFile -FilePath $expectedFilePath))
 {
     Write-Log ("Application already installed (file detection successful)")
-
     exit 0
 }
 
 if ($expectedDisplayName -and (Test-AppInstalled -NamePattern $expectedDisplayName))
 {
-    Write-Log ("Application appears installed by DisplayName, but file not found - continuing install for repair/recovery")
+    Write-Log "Application appears installed by DisplayName, but file not found - continuing install for repair/recovery"
 }
 
 
@@ -416,9 +412,7 @@ if ($expectedDisplayName -and (Test-AppInstalled -NamePattern $expectedDisplayNa
 # =====================================================================
 
 Write-Log "Starting pre-install process cleanup"
-
 Stop-AppProcesses -ProcessNames $processNamesToStop
-
 Start-Sleep -Seconds 3
 
 
@@ -441,7 +435,6 @@ try
             -PassThru `
             -NoNewWindow
     }
-
     elseif ($installerType -eq "EXE")
     {
         Write-Log "Installer type detected: EXE"
@@ -466,35 +459,27 @@ try
                 -NoNewWindow
         }
     }
-
     else
     {
         Write-Log "Unsupported installer type"
-
         exit 1
     }
 
-
     Write-Log ("Installer exit code: " + $process.ExitCode)
-
 
     if ($process.ExitCode -in @(0,1641,3010))
     {
         Write-Log "Installer returned a success code"
     }
-
     else
     {
         Write-Log "Installation failed"
-
         exit $process.ExitCode
     }
 }
-
 catch
 {
     Write-Log ("Installation error: " + $_.Exception.Message)
-
     exit 1
 }
 
@@ -503,11 +488,16 @@ catch
 # POST-INSTALL VALIDATION
 # =====================================================================
 
-Start-Sleep -Seconds 10
+Write-Log ("Waiting " + $postInstallWaitSeconds + " seconds before validation")
+Start-Sleep -Seconds $postInstallWaitSeconds
 
 if ($expectedFilePath -and (Test-AppInstalledByFile -FilePath $expectedFilePath))
 {
+    $endTime = Get-Date
+    $duration = New-TimeSpan -Start $ScriptStartTime -End $endTime
+
     Write-Log "Post-install validation successful"
+    Write-Log ("Total install duration: " + $duration.ToString())
     Write-Log "Installation successful"
 
     exit $process.ExitCode
@@ -515,9 +505,5 @@ if ($expectedFilePath -and (Test-AppInstalledByFile -FilePath $expectedFilePath)
 else
 {
     Write-Log ("Post-install validation failed: file not found at " + $expectedFilePath)
-
     exit 1
 }
-
-
-Write-Log "Script end"
