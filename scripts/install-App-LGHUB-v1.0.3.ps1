@@ -1,4 +1,4 @@
-#k =====================================================================
+# =====================================================================
 # Universal Win32 Install Script (EXE/MSI) - Intune / SYSTEM friendly
 # Author  : Anthony Sequeira
 # Version : 1.0.4
