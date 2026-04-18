@@ -106,3 +106,15 @@ The portable ZIP + PSADT model was retained because it provides:
 - clean user-context installation
 - reliable HKCU-based detection
 - no dependency on the Greenshot installer UI behavior
+
+## Prerequisites
+
+- PSAppDeployToolkit 4.1.x (tested with 4.1.8)
+- Greenshot-PORTABLE-1.3.315-RELEASE.zip
+- Microsoft Win32 Content Prep Tool (IntuneWinAppUtil.exe)
+
+## Download sources
+
+- PSAppDeployToolkit: official PSADT documentation / GitHub releases
+- Greenshot portable package: official Greenshot downloads / version history
+- IntuneWinAppUtil.exe: official Microsoft Intune Win32 packaging documentation
