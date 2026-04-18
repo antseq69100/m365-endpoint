@@ -2,7 +2,7 @@
 
 ## Intune detection settings
 - **Rule type**: Registry
-- **Key path**: `HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
+- **Key path**: `HKEY_CURRENT_USER\SOFTWARE\YourCompany\Apps\Greenshot`
 - **Value name**: `Version`
 - **Detection method**: String comparison
 - **Operator**: Equals
@@ -18,6 +18,6 @@ The application files are copied to:
 
 The deployment script then writes a custom registry marker in the current user hive:
 
-`HKCU\SOFTWARE\ITLYON\Apps\Greenshot`
+`HKCU\SOFTWARE\YourCompany\Apps\Greenshot`
 
 This registry marker is used as the authoritative Intune detection method.
