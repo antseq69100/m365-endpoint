@@ -26,8 +26,18 @@ Déployer Greenshot via Intune en package Win32 avec PSAppDeployToolkit, avec un
 ### Installation
 Voir : [`install-command.txt`](./install-command.txt)
 
+Commande utilisée :
+```text
+%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Install -DeployMode Silent
+```
+
 ### Désinstallation
 Voir : [`uninstall-command.txt`](./uninstall-command.txt)
+
+Commande utilisée :
+```text
+%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Uninstall -DeployMode Silent
+```
 
 ## Fichiers de documentation
 - [`detection-rule.md`](./detection-rule.md)
@@ -38,6 +48,8 @@ Voir : [`uninstall-command.txt`](./uninstall-command.txt)
 - Utiliser éventuellement `greenshot-defaults.ini`
 - Recréer le `.intunewin` à chaque modification du script
 - Vérifier la clé registre après installation
+- Débloquer les fichiers PSADT après extraction si le contenu provient d'un téléchargement Internet
+- Recréer le `.intunewin` après tout `Unblock-File`
 
 ## Vérification post-déploiement
 
@@ -53,6 +65,15 @@ reg query "HKLM\SOFTWARE\ITLYON\Apps\Greenshot" /v Version
 ([System.Diagnostics.FileVersionInfo]::GetVersionInfo("C:\Program Files\Greenshot\Greenshot.exe")).FileVersion
 ```
 
+## Préparation du package
+Avant de générer le `.intunewin`, débloquer les fichiers PSADT si nécessaire :
+
+```powershell
+Get-ChildItem "C:\Packages\Greenshot" -Recurse | Unblock-File
+```
+
+Puis recréer le package `.intunewin`.
+
 ## Retour d'expérience
 Un ancien mode de mise à jour par-dessus l'existant provoquait :
 - des reliquats dans le dossier d'installation
@@ -64,3 +85,8 @@ Le passage à PSADT a été retenu pour mieux contrôler :
 - le nettoyage
 - la réinstallation
 - la détection Intune
+
+Un incident a aussi été identifié lors des tests locaux :
+- le module PSADT pouvait être bloqué par Windows après extraction depuis un contenu téléchargé
+- ce blocage empêchait l'import du module et donc l'exécution du package
+- la correction a consisté à débloquer les fichiers, puis à regénérer le `.intunewin`
