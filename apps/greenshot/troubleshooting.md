@@ -3,14 +3,14 @@
 ## Application installs but is not detected
 Check that Intune detection is configured against:
 
-`HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
+`HKEY_CURRENT_USER\SOFTWARE\YourCompany\Apps\Greenshot`
 
 and not `HKEY_LOCAL_MACHINE`.
 
 Verify locally:
 
 ```powershell
-reg query "HKCU\SOFTWARE\ITLYON\Apps\Greenshot" /v Version
+reg query "HKCU\SOFTWARE\YourCompany\Apps\Greenshot" /v Version
 ```
 
 ## Application is installed in the wrong path
@@ -30,7 +30,7 @@ Do not use `Program Files` as the expected path for this package.
 Use the following Intune detection rule:
 
 - Rule type: Registry
-- Key path: `HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
+- Key path: `HKEY_CURRENT_USER\SOFTWARE\YourCompany\Apps\Greenshot`
 - Value name: `Version`
 - Detection method: String comparison
 - Operator: Equals
