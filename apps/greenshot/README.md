@@ -1,92 +1,90 @@
 # Greenshot - Intune Win32 + PSADT
 
-## Objectif
-Déployer Greenshot via Intune en package Win32 avec PSAppDeployToolkit, avec une installation silencieuse, une désinstallation propre et une détection fiable.
+## Objective
+Deploy Greenshot through Intune as a Win32 app using PSAppDeployToolkit, with silent installation, clean uninstallation, and reliable detection.
 
-## Version cible
+## Target version
 `1.3.315`
 
-## Méthode retenue
-- Package Win32 Intune
-- Script PSADT
-- Installation en contexte **System**
-- Détection via **clé registre custom**
-- Test d'abord sur machine pilote
+## Selected approach
+- Intune Win32 package
+- PSADT script
+- Installation in **System** context
+- Detection through a **custom registry key**
+- Initial validation on a pilot machine
 
-## Détection Intune
-- **Type** : Registry
-- **Key path** : `HKEY_LOCAL_MACHINE\SOFTWARE\ITLYON\Apps\Greenshot`
-- **Value name** : `Version`
-- **Detection method** : String comparison
-- **Operator** : Equals
-- **Value** : `1.3.315`
+## Intune detection rule
+- **Type**: Registry
+- **Key path**: `HKEY_LOCAL_MACHINE\SOFTWARE\ITLYON\Apps\Greenshot`
+- **Value name**: `Version`
+- **Detection method**: String comparison
+- **Operator**: Equals
+- **Value**: `1.3.315`
 
-## Commandes Intune
+## Intune commands
 
-### Installation
-Voir : [`install-command.txt`](./install-command.txt)
+### Install
+See: [`install-command.txt`](./install-command.txt)
 
-Commande utilisée :
+Command used:
 ```text
 %SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Install -DeployMode Silent
 ```
 
-### Désinstallation
-Voir : [`uninstall-command.txt`](./uninstall-command.txt)
+### Uninstall
+See: [`uninstall-command.txt`](./uninstall-command.txt)
 
-Commande utilisée :
+Command used:
 ```text
 %SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Uninstall -DeployMode Silent
 ```
 
-## Fichiers de documentation
+## Documentation files
 - [`detection-rule.md`](./detection-rule.md)
 - [`troubleshooting.md`](./troubleshooting.md)
 
-## Points d'attention
-- Ne pas pousser `Greenshot.ini` dans `Program Files`
-- Utiliser éventuellement `greenshot-defaults.ini`
-- Recréer le `.intunewin` à chaque modification du script
-- Vérifier la clé registre après installation
-- Débloquer les fichiers PSADT après extraction si le contenu provient d'un téléchargement Internet
-- Recréer le `.intunewin` après tout `Unblock-File`
+## Important notes
+- Do not place `Greenshot.ini` inside `Program Files`
+- Use `greenshot-defaults.ini` only if a default configuration is needed
+- Rebuild the `.intunewin` package after any script change
+- Verify the registry key after installation
+- Unblock PSADT files after extraction if the content comes from an Internet download
+- Rebuild the `.intunewin` package after running `Unblock-File`
 
-## Vérification post-déploiement
+## Post-deployment checks
 
-### Vérifier la clé registre
-
+### Check the registry key
 ```powershell
 reg query "HKLM\SOFTWARE\ITLYON\Apps\Greenshot" /v Version
 ```
 
-### Vérifier la version du binaire
-
+### Check the installed binary version
 ```powershell
 ([System.Diagnostics.FileVersionInfo]::GetVersionInfo("C:\Program Files\Greenshot\Greenshot.exe")).FileVersion
 ```
 
-## Préparation du package
-Avant de générer le `.intunewin`, débloquer les fichiers PSADT si nécessaire :
+## Package preparation
+Before generating the `.intunewin`, unblock PSADT files if needed:
 
 ```powershell
 Get-ChildItem "C:\Packages\Greenshot" -Recurse | Unblock-File
 ```
 
-Puis recréer le package `.intunewin`.
+Then rebuild the `.intunewin` package.
 
-## Retour d'expérience
-Un ancien mode de mise à jour par-dessus l'existant provoquait :
-- des reliquats dans le dossier d'installation
-- des désinstalleurs multiples
-- des erreurs liées à `Greenshot.ini`
+## Lessons learned
+A previous upgrade approach that installed over the existing version caused:
+- leftover files in the installation folder
+- multiple uninstallers
+- `Greenshot.ini` related errors
 
-Le passage à PSADT a été retenu pour mieux contrôler :
-- la désinstallation
-- le nettoyage
-- la réinstallation
-- la détection Intune
+Using PSADT was selected to better control:
+- uninstallation
+- cleanup
+- reinstallation
+- Intune detection
 
-Un incident a aussi été identifié lors des tests locaux :
-- le module PSADT pouvait être bloqué par Windows après extraction depuis un contenu téléchargé
-- ce blocage empêchait l'import du module et donc l'exécution du package
-- la correction a consisté à débloquer les fichiers, puis à regénérer le `.intunewin`
+An additional issue was identified during local testing:
+- the PSADT module could be blocked by Windows after extraction from downloaded content
+- this prevented module import and therefore package execution
+- the fix was to unblock the files and then rebuild the `.intunewin`
