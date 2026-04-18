@@ -1,1 +1,7 @@
-
+output/
+*.intunewin
+*.zip
+package-layout/Files/Greenshot/*
+!package-layout/Files/Greenshot/Add-Greenshot-portable-files-here.txt
+package-layout/PSAppDeployToolkit/*
+!package-layout/PSAppDeployToolkit/Add-PSADT-here.txt
