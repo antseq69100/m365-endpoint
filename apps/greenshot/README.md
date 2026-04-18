@@ -1,108 +1,83 @@
-# Greenshot - Intune Win32 deployment with PSAppDeployToolkit (Portable ZIP)
+# Troubleshooting
 
-## Objective
-Deploy Greenshot 1.3.315 through Microsoft Intune as a Win32 app using PSAppDeployToolkit and the portable ZIP package, with a fully silent user-context deployment, clean removal, and reliable detection.
+## Application installs but is not detected
+Check that Intune detection is configured against:
 
-## Target version
-`1.3.315`
+`HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
 
-## Chosen method
-- Intune Win32 package
-- PSAppDeployToolkit (PSADT)
-- Deployment in **User** context
-- Source based on the **portable ZIP package**
-- Files copied to `%LocalAppData%\Programs\Greenshot`
-- Detection through a custom **HKCU** registry marker
-- Optional startup registration through `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
-- Pilot validation before wider deployment
+and not `HKEY_LOCAL_MACHINE`.
 
-## Source package
-Use the extracted contents of:
-
-`Greenshot-PORTABLE-1.3.315-RELEASE.zip`
-
-Do not package the ZIP file itself.  
-Do not use the standard Greenshot EXE installer for this deployment model.
-
-## Package structure
-
-```text
-Greenshot-PSADT/
-├─ Invoke-AppDeployToolkit.ps1
-├─ PSAppDeployToolkit/
-└─ Files/
-   ├─ Greenshot/
-   │  ├─ Greenshot.exe
-   │  ├─ Greenshot.Base.dll
-   │  ├─ Greenshot.Editor.dll
-   │  ├─ Languages/
-   │  ├─ Plugins/
-   │  └─ ...
-   └─ greenshot-defaults.ini
-```
-
-## Intune configuration
-
-### Install behavior
-`User`
-
-### Installation command
-See: [`install-command.txt`](./install-command.txt)
-
-### Uninstall command
-See: [`uninstall-command.txt`](./uninstall-command.txt)
-
-### Detection rule
-See: [`detection-rule.md`](./detection-rule.md)
-
-## Post-deployment validation
-
-### Verify registry marker
+Verify locally:
 
 ```powershell
 reg query "HKCU\SOFTWARE\ITLYON\Apps\Greenshot" /v Version
 ```
 
-### Verify installed files
+## Application is installed in the wrong path
+This package is designed for a user-context deployment and copies Greenshot to:
+
+`%LocalAppData%\Programs\Greenshot`
+
+Verify locally:
 
 ```powershell
 Get-ChildItem "$env:LocalAppData\Programs\Greenshot"
 ```
 
-### Verify executable version
+Do not use `Program Files` as the expected path for this package.
+
+## Detection rule is incorrect
+Use the following Intune detection rule:
+
+- Rule type: Registry
+- Key path: `HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
+- Value name: `Version`
+- Detection method: String comparison
+- Operator: Equals
+- Value: `1.3.315`
+
+## Wrong install context
+This package must be configured in Intune with:
+
+- **Install behavior** = `User`
+
+If the deployment is configured in System context, installation and detection will not align correctly.
+
+## Browser or unwanted UI opens during install
+This issue was observed with the standard EXE installer approach.
+
+The retained solution is based on the portable ZIP package, which avoids the installer post-actions and provides a cleaner silent deployment.
+
+## Validate installation command
+
+```text
+%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Install -DeployMode Silent
+```
+
+## Validate uninstall command
+
+```text
+%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Uninstall -DeployMode Silent
+```
+
+## Validate installed version
 
 ```powershell
 ([System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:LocalAppData\Programs\Greenshot\Greenshot.exe")).FileVersion
 ```
 
-### Verify startup registration
+Expected normalized version:
+
+`1.3.315`
+
+## Validate startup registration
 
 ```powershell
 reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v Greenshot
 ```
 
-## Important notes
-- Do not use the standard Greenshot EXE installer in this package
-- Do not keep HKLM-based detection from the previous deployment model
-- Do not validate the app through `Program Files` paths for this package
-- Rebuild the `.intunewin` package after every script change
-- Keep pilot assignments isolated from the old EXE-based package
-
-## Documentation files
-- [`detection-rule.md`](./detection-rule.md)
-- [`troubleshooting.md`](./troubleshooting.md)
-- [`install-command.txt`](./install-command.txt)
-- [`uninstall-command.txt`](./uninstall-command.txt)
-
-## Lessons learned
-The original EXE-based deployment model caused several issues:
-- browser opening at the end of setup
-- inconsistent silent behavior
-- unreliable alignment between install context and detection logic
-- confusion between machine-wide and user-based installation paths
-
-The portable ZIP + PSADT model was retained because it provides:
-- a fully controlled file copy deployment
-- clean user-context installation
-- reliable HKCU-based detection
-- no dependency on the Greenshot installer UI behavior
+## Conflict with previous package
+If an older Greenshot package was previously assigned, make sure:
+- it is removed from the same target scope
+- it is renamed as legacy or old
+- it does not still enforce an outdated detection method or installer-based deployment model
