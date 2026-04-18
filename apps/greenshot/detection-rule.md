@@ -22,5 +22,5 @@ Equals
 No
 
 ## Notes
-Cette clé est créée par le script PSADT après installation.
-Le but est d'avoir une détection Intune simple et fiable.
+This registry key is created by the PSADT script after a successful installation.
+The goal is to provide a simple and reliable Intune detection rule.
