@@ -1,7 +1,7 @@
 <#
 ===============================================================================
 PSADT - Application deployment
-Author : Anthony
+Author : Anthony Sequeira
 
 Purpose :
 - Remove previous Greenshot portable deployment
