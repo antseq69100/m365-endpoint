@@ -52,3 +52,27 @@ C:\Windows\Logs\Software
 - Utiliser éventuellement `greenshot-defaults.ini`
 - Recréer le `.intunewin` à chaque modification du script
 - Tester d'abord sur une machine pilote
+
+## Incident rencontré avec PSADT
+Lors du test manuel du package, le script échouait au chargement du module PSADT avec une erreur liée à :
+
+```text
+PSADT.ClientServer.Server.dll
+0x80131515
+```
+
+### Cause
+Les fichiers PSADT extraits depuis une archive téléchargée étaient bloqués par Windows (Mark of the Web).
+
+### Correctif
+Débloquer tous les fichiers du dossier avant de packager :
+
+```powershell
+Get-ChildItem "C:\Packages\Greenshot" -Recurse | Unblock-File
+```
+
+### Conséquence
+Après déblocage, il faut :
+1. retester le script localement
+2. recréer le fichier `.intunewin`
+3. réuploader l'application dans Intune
