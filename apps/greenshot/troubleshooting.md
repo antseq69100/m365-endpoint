@@ -26,3 +26,18 @@
 ### Vérifier la clé registre
 ```powershell
 reg query "HKLM\SOFTWARE\ITLYON\Apps\Greenshot" /v Version
+
+### Vérifier la version du binaire
+([System.Diagnostics.FileVersionInfo]::GetVersionInfo("C:\Program Files\Greenshot\Greenshot.exe")).FileVersion
+
+### Vérifier les logs Intune
+C:\ProgramData\Microsoft\IntuneManagementExtension\Logs
+
+### Vérifier les logs PSADT
+C:\Windows\Logs\Software
+
+### Points d'attention
+Ne pas pousser Greenshot.ini dans Program Files
+Utiliser éventuellement greenshot-defaults.ini
+Recréer le .intunewin à chaque modification du script
+Tester d'abord sur une machine pilote
