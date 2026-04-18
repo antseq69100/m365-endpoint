@@ -1,26 +1,23 @@
-# Detection rule - Greenshot
+# Detection rule
 
-## Type
-Registry
+## Intune detection settings
+- **Rule type**: Registry
+- **Key path**: `HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
+- **Value name**: `Version`
+- **Detection method**: String comparison
+- **Operator**: Equals
+- **Value**: `1.3.315`
+- **Associated with a 32-bit app on 64-bit clients**: No
 
-## Key path
-`HKEY_LOCAL_MACHINE\SOFTWARE\ITLYON\Apps\Greenshot`
+## Why this detection rule
+This package deploys Greenshot in **user context** from the portable ZIP package.
 
-## Value name
-`Version`
+The application files are copied to:
 
-## Detection method
-String comparison
+`%LocalAppData%\Programs\Greenshot`
 
-## Operator
-Equals
+The deployment script then writes a custom registry marker in the current user hive:
 
-## Value
-`1.3.315`
+`HKCU\SOFTWARE\ITLYON\Apps\Greenshot`
 
-## 32-bit app on 64-bit clients
-No
-
-## Notes
-This registry key is created by the PSADT script after a successful installation.
-The goal is to provide a simple and reliable Intune detection rule.
+This registry marker is used as the authoritative Intune detection method.
