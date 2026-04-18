@@ -1,1 +1,1 @@
-
+Copy the PSAppDeployToolkit files into this folder before building the Intune package.
