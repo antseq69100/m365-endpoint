@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## App installs but is not detected
+## Application installs but is not detected
 Check that Intune detection is configured against:
 
 `HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
@@ -13,46 +13,71 @@ Verify locally:
 reg query "HKCU\SOFTWARE\ITLYON\Apps\Greenshot" /v Version
 ```
 
-## App is detected nowhere on disk
-Check the user profile path:
+## Application is installed in the wrong path
+This package is designed for a user-context deployment and copies Greenshot to:
+
+`%LocalAppData%\Programs\Greenshot`
+
+Verify locally:
 
 ```powershell
 Get-ChildItem "$env:LocalAppData\Programs\Greenshot"
 ```
 
-This package does not install Greenshot into `Program Files`.
+Do not use `Program Files` as the expected path for this package.
+
+## Detection rule is incorrect
+Use the following Intune detection rule:
+
+- Rule type: Registry
+- Key path: `HKEY_CURRENT_USER\SOFTWARE\ITLYON\Apps\Greenshot`
+- Value name: `Version`
+- Detection method: String comparison
+- Operator: Equals
+- Value: `1.3.315`
 
 ## Wrong install context
 This package must be configured in Intune with:
 
 - **Install behavior** = `User`
 
-If the app is deployed in System context, the user-based installation logic and HKCU detection will not align correctly.
+If the deployment is configured in System context, installation and detection will not align correctly.
 
-## Old package interference
-Make sure the old EXE-based Greenshot package is no longer assigned to the same pilot target.
+## Browser or unwanted UI opens during install
+This issue was observed with the standard EXE installer approach.
 
-## Command validation
+The retained solution is based on the portable ZIP package, which avoids the installer post-actions and provides a cleaner silent deployment.
 
-### Install command
+## Validate installation command
 
 ```text
 %SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Install -DeployMode Silent
 ```
 
-### Uninstall command
+## Validate uninstall command
 
 ```text
 %SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Invoke-AppDeployToolkit.ps1 -DeploymentType Uninstall -DeployMode Silent
 ```
 
-## Version validation
-Check the executable version:
+## Validate installed version
 
 ```powershell
 ([System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:LocalAppData\Programs\Greenshot\Greenshot.exe")).FileVersion
 ```
 
-Expected normalized version for detection:
+Expected normalized version:
 
 `1.3.315`
+
+## Validate startup registration
+
+```powershell
+reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v Greenshot
+```
+
+## Conflict with previous package
+If an older Greenshot package was previously assigned, make sure:
+- it is removed from the same target scope
+- it is renamed as legacy or old
+- it does not still enforce an outdated detection method or installer-based deployment model
