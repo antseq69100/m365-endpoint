@@ -1,41 +1,41 @@
-# WinSCP - Intune Win32 package
+# Greenshot - Intune Win32 package
 
 ## Overview
 
-This package deploys the official WinSCP MSI through PSAppDeployToolkit for managed Windows devices.
+This package deploys Greenshot through PSAppDeployToolkit for managed Windows devices.
 
 It is designed for:
 - Microsoft Intune Win32 deployment
-- Silent installation
+- Silent user-context installation
 - Silent uninstall
-- Basic repair support
+- Cleanup of previous application leftovers
+- Custom registry marker for Intune detection
 - Simple logging for troubleshooting
 
 ## Application details
 
 | Property | Value |
 |---|---|
-| Application | WinSCP |
-| Vendor | Martin Prikryl |
+| Application | Greenshot |
+| Vendor | Greenshot |
 | Package type | Win32 app |
-| Installer type | MSI |
+| Installer type | Portable extracted package |
 | Wrapper | PSAppDeployToolkit |
+| Install context | User |
 
 ## Source package
 
-Use the official MSI installer:
+Use the extracted contents of:
 
-`WinSCP-6.5.6.msi`
+`Greenshot-PORTABLE-1.3.315-RELEASE.zip`
 
-Place the MSI file in:
+Do not package the ZIP file itself.
 
-`package-layout/Files/`
-
-Do not create an extracted application subfolder in `Files/`.
+Do not use the standard Greenshot EXE installer for this deployment model.
 
 ## Package structure
 
-    apps/winscp/
+    apps/greenshot/
     ├── .gitignore
     ├── Invoke-AppDeployToolkit.ps1
     ├── README.md
@@ -48,8 +48,14 @@ Do not create an extracted application subfolder in `Files/`.
         ├── Assets/
         ├── Config/
         ├── Files/
-        │   ├── Add Setup Files Here.txt
-        │   └── WinSCP-6.5.6.msi
+        │   ├── Greenshot/
+        │   │   ├── Greenshot.exe
+        │   │   ├── Greenshot.Base.dll
+        │   │   ├── Greenshot.Editor.dll
+        │   │   ├── Languages/
+        │   │   ├── Plugins/
+        │   │   └── ...
+        │   └── greenshot-defaults.ini
         ├── PSAppDeployToolkit/
         ├── PSAppDeployToolkitExtensions/
         ├── Strings/
@@ -61,7 +67,7 @@ Do not create an extracted application subfolder in `Files/`.
 
 ### Install behavior
 
-`System`
+`User`
 
 ### Install command
 
@@ -77,24 +83,38 @@ See: [`detection-rule.md`](./detection-rule.md)
 
 ## Logging
 
-Local logs are written to:
+Typical log files are written to:
 
-`C:\ProgramData\ITLYON\Logs\WinSCP\`
+`C:\Temp\Install-App.log`  
+`C:\Temp\Uninstall-App.log`
 
-Main log files:
-- `Deploy-Application.log`
-- `Install.log`
-- `Uninstall.log`
-- `Repair.log`
+Additional Intune troubleshooting logs:
+
+`C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\`
 
 ## Build process
 
 1. Copy the PSAppDeployToolkit template into `package-layout`
-2. Copy the MSI file into `package-layout/Files/`
-3. Replace `package-layout/Invoke-AppDeployToolkit.ps1` with the WinSCP deployment script
-4. Build the `.intunewin` package from `package-layout`
+2. Copy the extracted Greenshot portable files into `package-layout/Files/Greenshot/`
+3. Copy `greenshot-defaults.ini` into `package-layout/Files/`
+4. Replace `package-layout/Invoke-AppDeployToolkit.ps1` with the Greenshot deployment script
+5. Build the `.intunewin` package from `package-layout`
 
 See: [`build-package.txt`](./build-package.txt)
+
+## Detection model
+
+This package uses a custom registry marker for Intune detection.
+
+Expected detection marker:
+
+`HKLM\SOFTWARE\ITLYON\Apps\Greenshot`
+
+Value:
+
+`Version = 1.3.315`
+
+See: [`detection-rule.md`](./detection-rule.md)
 
 ## Troubleshooting
 
@@ -102,11 +122,12 @@ See: [`troubleshooting.md`](./troubleshooting.md)
 
 ## Notes
 
-- This package uses the official WinSCP MSI installer.
-- The MSI file must be placed in `package-layout/Files/`.
-- No extracted application subfolder is required in `Files/`.
-- Update the MSI file name in `Invoke-AppDeployToolkit.ps1` when packaging a new version.
+- This package is based on the extracted portable Greenshot package.
+- Do not package the ZIP file directly.
+- Do not use the standard EXE installer for this deployment model.
+- The package writes a custom registry marker for Intune detection.
+- `greenshot-defaults.ini` can be used to apply default settings.
 
 ## Status
 
-Validated as a working baseline for WinSCP deployment with Intune Win32 and PSAppDeployToolkit.
+Validated as a working baseline for Greenshot deployment with Intune Win32 and PSAppDeployToolkit.
