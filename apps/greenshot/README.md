@@ -36,22 +36,37 @@ Use the extracted contents of:
 Do not package the ZIP file itself.  
 Do not use the standard Greenshot EXE installer for this deployment model.
 
+```md
+## Notes
+
+- The WinSCP package uses the official MSI installer.
+- The MSI file must be placed in `package-layout/Files/`.
+- No extracted application subfolder is required in `Files/`.
+
 ## Package structure
 
 ```text
-Greenshot-PSADT/
-├─ Invoke-AppDeployToolkit.ps1
-├─ PSAppDeployToolkit/
-└─ Files/
-   ├─ Greenshot/
-   │  ├─ Greenshot.exe
-   │  ├─ Greenshot.Base.dll
-   │  ├─ Greenshot.Editor.dll
-   │  ├─ Languages/
-   │  ├─ Plugins/
-   │  └─ ...
-   └─ greenshot-defaults.ini
-```
+apps/winscp/
+├── .gitignore
+├── Invoke-AppDeployToolkit.ps1
+├── README.md
+├── build-package.txt
+├── detection-rule.md
+├── install-command.txt
+├── troubleshooting.md
+├── uninstall-command.txt
+└── package-layout/
+    ├── Assets/
+    ├── Config/
+    ├── Files/
+    │   ├── Add Setup Files Here.txt
+    │   └── WinSCP-6.5.6.msi
+    ├── PSAppDeployToolkit/
+    ├── PSAppDeployToolkitExtensions/
+    ├── Strings/
+    ├── SupportFiles/
+    ├── Invoke-AppDeployToolkit.exe
+    └── Invoke-AppDeployToolkit.ps1
 
 ## Intune configuration
 
