@@ -63,6 +63,11 @@ Do not create an extracted application subfolder in `Files/`.
 
 `System`
 
+### Why
+
+WinSCP is deployed as a machine-wide MSI installation through PSAppDeployToolkit.  
+The application is expected to be installed for all users on the device.
+
 ### Install command
 
 See: [`install-command.txt`](./install-command.txt)
