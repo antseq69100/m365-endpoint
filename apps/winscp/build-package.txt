@@ -1,0 +1,18 @@
+Prerequisites:
+1. Download PSAppDeployToolkit 4.1.x and extract it into package-layout\PSAppDeployToolkit
+2. Download the official WinSCP MSI package
+3. Copy the MSI file into package-layout\Files\
+4. Download IntuneWinAppUtil.exe
+5. Keep IntuneWinAppUtil.exe outside the source folder before packaging
+
+1. Download the official WinSCP MSI package
+2. Copy the MSI file into .\package-layout\Files\
+3. Copy PSAppDeployToolkit into .\package-layout\PSAppDeployToolkit\
+4. Copy Invoke-AppDeployToolkit.ps1 to the package root
+5. Build the Intune package with IntuneWinAppUtil.exe
+
+Expected MSI file:
+WinSCP-6.5.6.msi
+
+Example:
+IntuneWinAppUtil.exe -c .\package-layout -s Invoke-AppDeployToolkit.ps1 -o .\output
